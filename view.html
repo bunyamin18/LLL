@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Listeyi Görüntüle</title>
+
+  <!-- Stil -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f0faff, #c2f0f7);
+      margin: 0; padding: 0;
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff; border-radius: 20px;
+      padding: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      width: 90%; max-width: 700px;
+    }
+    h1 { color: #00bcd4; text-align: center; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #ddd; }
+    input, button { padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
+    img { max-width: 100px; max-height: 100px; }
+    .buttons { text-align: center; margin-top: 20px; }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
+  <script>
+    // --- BURAYA AYNI KONFİG'İNİ EKLE ---
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "…",
+      appId: "…"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1 id="listTitle">Yükleniyor...</h1>
+    <table>
+      <thead>
+        <tr><th>Öğe Adı</th><th>Miktar</th><th>Resim</th></tr>
+      </thead>
+      <tbody id="listBody"></tbody>
+    </table>
+    <div class="buttons">
+      <button id="editBtn" onclick="enableEdit()">Düzenle</button>
+      <button id="saveBtn" style="display:none" onclick="saveChanges()">Kaydet</button>
+    </div>
+  </div>
+
+  <script>
+    let list = null;
+    const urlParams = new URLSearchParams(location.search);
+    const listId = urlParams.get('id');
+    const titleEl = document.getElementById('listTitle');
+    const bodyEl = document.getElementById('listBody');
+    const editBtn = document.getElementById('editBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    // Veriyi çek
+    db.ref('lists/' + listId).once('value')
+      .then(snap => {
+        if (!snap.exists()) {
+          titleEl.textContent = 'Liste bulunamadı!';
+          return;
+        }
+        list = snap.val();
+        render(false);
+      })
+      .catch(console.error);
+
+    function render(editable) {
+      titleEl.textContent = list.title;
+      bodyEl.innerHTML = '';
+      list.items.forEach((item, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${editable 
+            ? `<input type="text" value="${item.name}">` 
+            : item.name}</td>
+          <td>${editable 
+            ? `<input type="text" value="${item.amount}">` 
+            : item.amount}</td>
+          <td>
+            ${editable 
+              ? `<input type="file" data-index="${i}"><br>${item.imageUrl ? `<img src="${item.imageUrl}">` : ''}` 
+              : (item.imageUrl ? `<img src="${item.imageUrl}">` : '')}
+          </td>
+        `;
+        bodyEl.appendChild(tr);
+      });
+    }
+
+    function enableEdit() {
+      render(true);
+      editBtn.style.display = 'none';
+      saveBtn.style.display = 'inline-block';
+    }
+
+    function saveChanges() {
+      const rows = bodyEl.querySelectorAll('tr');
+      const newItems = [];
+      rows.forEach((r,i) => {
+        const name = r.querySelector('td:nth-child(1) input').value;
+        const amount = r.querySelector('td:nth-child(2) input').value;
+        const fileInput = r.querySelector('td:nth-child(3) input[type=file]');
+        let imageUrl = list.items[i].imageUrl;
+        if (fileInput.files[0]) {
+          imageUrl = URL.createObjectURL(fileInput.files[0]);
+        }
+        newItems.push({ name, amount, imageUrl });
+      });
+      list.items = newItems;
+      // DB'ye kaydet
+      db.ref('lists/' + listId).set(list)
+        .then(() => {
+          render(false);
+          editBtn.style.display = 'inline-block';
+          saveBtn.style.display = 'none';
+        })
+        .catch(console.error);
+    }
+  </script>
+</body>
+</html>

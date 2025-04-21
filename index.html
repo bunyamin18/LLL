@@ -2,67 +2,64 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Akıllı Liste</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Akıllı Liste Oluştur</title>
+
+  <!-- Stil -->
   <style>
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #c2f0f7, #f0faff);
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      margin: 0; padding: 0;
+      display: flex; justify-content: center; align-items: center;
       height: 100vh;
     }
     .container {
-      background: white;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 600px;
-      text-align: center;
+      background: #fff; border-radius: 20px;
+      padding: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      width: 90%; max-width: 600px; text-align: center;
     }
-    h1 {
-      color: #00bcd4;
-    }
-    input, button, textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: 1px solid #ccc;
+    h1 { color: #00bcd4; }
+    input, button { 
+      width: 100%; padding: 10px; margin: 10px 0;
+      border-radius: 10px; border: 1px solid #ccc;
       font-size: 16px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
-    .qr-container {
-      margin-top: 20px;
-    }
-    img {
-      max-width: 100px;
-      max-height: 100px;
-    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #ddd; }
+    .qr-container { margin-top: 20px; }
+    canvas { border: 4px solid #00bcd4; padding: 10px; }
   </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
+  <script>
+    // --- BURAYA FIREBASE KONFİG'İNİ YAPIŞTIR ---
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "…",
+      appId: "…"
+    };
+    // Initialize
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+
+  <!-- QR Kod Kütüphanesi -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Liste Oluştur</h1>
     <input type="text" id="listTitle" placeholder="Liste Başlığı">
-    <table id="listTable">
+    <table>
       <thead>
-        <tr>
-          <th>Öğe Adı</th>
-          <th>Miktar</th>
-          <th>Resim</th>
-        </tr>
+        <tr><th>Öğe Adı</th><th>Miktar</th><th>Resim</th></tr>
       </thead>
       <tbody id="listBody">
         <tr>
@@ -77,50 +74,40 @@
     <div class="qr-container" id="qrContainer"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script>
     function addRow() {
-      const row = document.createElement("tr");
-      row.innerHTML = `
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
         <td><input type="text" placeholder="Öğe"></td>
         <td><input type="text" placeholder="Miktar"></td>
         <td><input type="file" accept="image/*"></td>
       `;
-      document.getElementById("listBody").appendChild(row);
+      document.getElementById('listBody').appendChild(tr);
     }
 
     function saveList() {
-      const title = document.getElementById("listTitle").value;
-      const rows = document.querySelectorAll("#listBody tr");
-      let items = [];
-
-      rows.forEach(row => {
-        const cells = row.querySelectorAll("td input");
-        const name = cells[0].value;
-        const amount = cells[1].value;
-        const image = cells[2].files[0];
-
-        let imageUrl = "";
-        if (image) {
-          imageUrl = URL.createObjectURL(image);
-        }
-
-        items.push({ name, amount, imageUrl });
+      const title = document.getElementById('listTitle').value || 'Başlıksız';
+      const rows = document.querySelectorAll('#listBody tr');
+      const items = [];
+      rows.forEach(r => {
+        const [nameEl, amtEl, imgEl] = r.querySelectorAll('input');
+        let imageUrl = '';
+        if (imgEl.files[0]) imageUrl = URL.createObjectURL(imgEl.files[0]);
+        items.push({ name: nameEl.value, amount: amtEl.value, imageUrl });
       });
-
-      const id = Date.now();
+      const id = Date.now().toString();
       const list = { title, items, id };
-      localStorage.setItem("list_" + id, JSON.stringify(list));
 
-      const shareUrl = location.origin + location.pathname.replace("index.html", "") + "view.html?id=" + id;
-
-      document.getElementById("qrContainer").innerHTML = "<h3>QR Kod:</h3>";
-      QRCode.toCanvas(document.createElement("canvas"), shareUrl, (err, canvas) => {
-        if (err) return console.error(err);
-        canvas.style.border = "4px solid #00bcd4";
-        canvas.style.padding = "10px";
-        document.getElementById("qrContainer").appendChild(canvas);
-      });
+      db.ref('lists/' + id).set(list)
+        .then(() => {
+          const shareUrl = `${location.origin}${location.pathname.replace('index.html','')}view.html?id=${id}`;
+          document.getElementById('qrContainer').innerHTML = '<h3>QR Kod:</h3>';
+          QRCode.toCanvas(document.createElement('canvas'), shareUrl, (err, canvas) => {
+            if (err) return console.error(err);
+            document.getElementById('qrContainer').appendChild(canvas);
+          });
+        })
+        .catch(console.error);
     }
   </script>
 </body>
