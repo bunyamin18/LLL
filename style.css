@@ -1,90 +1,98 @@
+/* Genel ayarlar */
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(-45deg, #00acc1, #e0f7fa, #00acc1, #ffffff);
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(-45deg, #00c3ff, #3a47d5, #00c3ff, #3a47d5);
     background-size: 400% 400%;
-    animation: gradientMove 15s ease infinite;
+    animation: gradientBG 15s ease infinite;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    color: #fff;
 }
 
-@keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+/* Arka plan animasyonu */
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
 }
 
-.container {
-    background: #ffffffcc;
-    padding: 30px;
+/* Ana içerik kutusu */
+.container, main {
+    background-color: rgba(255, 255, 255, 0.1);
     border-radius: 20px;
-    box-shadow: 0 8px 16px rgba(0, 172, 193, 0.3);
-    width: 90%;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    padding: 30px;
     max-width: 800px;
+    width: 90%;
+    margin-top: 40px;
+    backdrop-filter: blur(10px);
+}
+
+/* Başlık */
+h1, h2 {
+    color: #ffffff;
     text-align: center;
 }
 
-h1 {
-    color: #007c91;
-    margin-bottom: 20px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-th, td {
+/* Giriş kutuları ve butonlar */
+input[type="text"], input[type="number"], input[type="password"] {
     padding: 10px;
-    border: 1px solid #b2ebf2;
-    text-align: center;
-}
-
-th {
-    background-color: #00acc1;
-    color: white;
-}
-
-input[type="text"], input[type="number"], input[type="file"] {
-    width: 100%;
-    padding: 5px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    border-radius: 10px;
+    border: none;
+    margin-right: 10px;
+    outline: none;
+    width: 150px;
 }
 
 button {
-    margin-top: 20px;
-    padding: 12px 24px;
-    background-color: #00acc1;
-    color: white;
+    padding: 10px 20px;
+    background-color: #00bcd4;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
+    color: white;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+    transition: background 0.3s ease;
+    margin-top: 10px;
 }
 
 button:hover {
-    background-color: #007c91;
-}
-
-.qr-preview {
-    margin-top: 20px;
-    border: 3px dashed #00acc1;
-    padding: 10px;
-    display: inline-block;
-    border-radius: 16px;
-    background: #ffffff;
-}
-
-.add-row-btn {
     background-color: #0097a7;
-    margin-bottom: 10px;
 }
 
-.add-row-btn:hover {
-    background-color: #006064;
+/* QR kod çerçevesi */
+.qr-code {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border: 5px dashed #00c3ff;
+    border-radius: 20px;
+}
+
+/* Tablo stili */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th, table td {
+    padding: 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-align: left;
+    color: #fff;
+}
+
+a {
+    color: #ffeeaa;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
 }
